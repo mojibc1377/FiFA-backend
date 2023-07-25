@@ -62,6 +62,20 @@ app.put('/api/users/:userId', async (req, res) => {
   }
 });
 
+app.put('/api/challenges/:id', async (req, res) => {
+  try {
+    const challengeId = req.params.id;
+    const updatedChallenge = req.body;
+
+    // Find the challenge by ID and update it with the new data
+    const result = await Challenge.findByIdAndUpdate(challengeId, updatedChallenge);
+
+    res.json(result);
+  } catch (error) {
+    console.error('Error updating challenge:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+})
 
 
 app.post('/api/challenges/new/post', async (req, res) => {
@@ -84,20 +98,6 @@ app.post('/api/challenges/new/post', async (req, res) => {
   }
 });
 
-app.put('/api/challenges/:id', async (req, res) => {
-  try {
-    const challengeId = req.params.id;
-    const updatedChallenge = req.body;
-
-    // Find the challenge by ID and update it with the new data
-    const result = await Challenge.findByIdAndUpdate(challengeId, updatedChallenge);
-
-    res.json(result);
-  } catch (error) {
-    console.error('Error updating challenge:', error);
-    res.status(500).json({ message: 'Server Error' });
-  }
-})
 
 app.post('/api/signup', async (req, res) => {
   const { name, username, password, phoneNumber, psnId } = req.body;

@@ -5,6 +5,7 @@ import User from "./models/usersModel.js";
 import connectDataBase from "./config/mongoDb.js";
 import {notFound, errorHandler} from "./MiddleWare/Errors.js";
 import Challenge from "./models/challengeSchema.js";
+import Coin from "./models/coins.js"
 
 const app = express();
 dotenv.config()
@@ -135,6 +136,30 @@ app.get('/api/challenges', async (req, res) => {
       res.status(500).json({ message: 'An error occurred while creating a new user' });
     }
   });
+
+    app.post('/api/coins', async (req, res) => {
+    try {
+      const { mizan, psnId , requestType } = req.body;
+  
+      // Create a new coin document using the Coin model
+      const newCoin = new Coin({
+        mizan: mizan,
+        psnId: psnId,
+        requestType
+      });
+  
+      // Save the coin to the database
+      await newCoin.save();
+  
+      // Send a response indicating the coin was successfully added
+      res.status(201).json({ message: 'Coin added successfully!' });
+    } catch (error) {
+      // Handle errors and send an appropriate response
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+  
   app.use(notFound)
   app.use(errorHandler)
 

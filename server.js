@@ -47,7 +47,7 @@ app.get('/api/challenges', async (req, res) => {
     res.status(500).json({ message: 'Server Error' });
   }
 });
-  app.put('/api/users/:userId', async (req, res) => {
+  app.put('/api/settings/users/:userId', async (req, res) => {
   const userId = req.params.userId; 
   const dataToUpdate = req.body; 
 

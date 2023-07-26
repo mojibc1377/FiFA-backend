@@ -7,7 +7,8 @@ const challengeSchema = new mongoose.Schema({
     consoleType : String,
     challengeAmount : Number,
     challengerId:String,
-    accepterId:String
+    accepterId:String,
+    avatar:String
     
   });
 

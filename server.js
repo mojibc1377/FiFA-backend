@@ -1,4 +1,3 @@
-// server.js
 import express from "express"
 import dotenv from "dotenv"
 import cors from "cors"
@@ -15,7 +14,13 @@ app.use(express.json());
 
 // Define API endpoint to fetch users
 app.get('/api/users', async (req, res) => {
+  const userId = req.query.userId
+
   try {
+    if(userId){
+    const result = await User.find({ _id: userId });
+    res.json(result)
+    }
     const users = await User.find()
     res.json(users);
   } catch (err) {
@@ -23,6 +28,8 @@ app.get('/api/users', async (req, res) => {
     res.status(500).json({ message: 'Server Error' });
   }
 });
+
+
 app.get('/api/challenges', async (req, res) => {
   try {
     const { accepterId } = req.query;
@@ -32,7 +39,6 @@ app.get('/api/challenges', async (req, res) => {
       const challenges = await Challenge.find({ accepterId });
       res.json(challenges);
     } else {
-//if without query fetch all 
       const challenges = await Challenge.find();
       res.json(challenges);
     }
@@ -41,7 +47,7 @@ app.get('/api/challenges', async (req, res) => {
     res.status(500).json({ message: 'Server Error' });
   }
 });
-app.put('/api/users/:userId', async (req, res) => {
+  app.put('/api/users/:userId', async (req, res) => {
   const userId = req.params.userId; 
   const dataToUpdate = req.body; 
 
@@ -62,75 +68,77 @@ app.put('/api/users/:userId', async (req, res) => {
   }
 });
 
-app.put('/api/challenges/:id', async (req, res) => {
-  try {
-    const challengeId = req.params.id;
-    const updatedChallenge = req.body;
+  app.put('/api/challenges/:id', async (req, res) => {
+    try {
+      const challengeId = req.params.id;
+      const updatedChallenge = req.body;
 
-    // Find the challenge by ID and update it with the new data
-    const result = await Challenge.findByIdAndUpdate(challengeId, updatedChallenge);
+      // Find the challenge by ID and update it with the new data
+      const result = await Challenge.findByIdAndUpdate(challengeId, updatedChallenge);
 
-    res.json(result);
-  } catch (error) {
-    console.error('Error updating challenge:', error);
-    res.status(500).json({ message: 'Server Error' });
-  }
+      res.json(result);
+    } catch (error) {
+      console.error('Error updating challenge:', error);
+      res.status(500).json({ message: 'Server Error' });
+    }
 })
 
 
-app.post('/api/challenges/new/post', async (req, res) => {
-  try {
-    const { challengerName, gameName, consoleType, challengeAmount, challengerId, accepterId } = req.body;
+  app.post('/api/challenges/new/post', async (req, res) => {
+    try {
+      const { challengerName, gameName, consoleType, challengeAmount, challengerId, accepterId, avatar } = req.body;
 
-    const newChallenge = await Challenge.create({
-      challengerName,
-      gameName,
-      consoleType,
-      challengeAmount,
-      challengerId,
-      accepterId
-    });
+      const newChallenge = await Challenge.create({
+        challengerName,
+        gameName,
+        consoleType,
+        challengeAmount,
+        challengerId,
+        accepterId,
+        avatar
+      });
 
-    res.status(201).json(newChallenge); // Respond with the newly created challenge
-  } catch (error) {
-    console.error('Error creating a challenge:', error);
-    res.status(500).json({ message: 'An error occurred while creating a challenge' });
-  }
-});
-
-
-app.post('/api/signup', async (req, res) => {
-  const { name, username, password, phoneNumber, psnId } = req.body;
-
-  try {
-
-    const existingUser = await User.findOne({ username });
-    if (existingUser) {
-      return res.status(400).json({ message: 'Username is already taken. Please choose a different one.' });
+      res.status(201).json(newChallenge); // Respond with the newly created challenge
+    } catch (error) {
+      console.error('Error creating a challenge:', error);
+      res.status(500).json({ message: 'An error occurred while creating a challenge' });
     }
+  });
 
-    const newUser = new User({
-      name,
-      username,
-      password,
-      number: phoneNumber,
-      psnId,
-      accountCredit: '0', //default
-    });
 
-    // Save the new user to the database
-    const savedUser = await newUser.save();
+  app.post('/api/signup', async (req, res) => {
+    const { name, username, password, phoneNumber, psnId, avatar } = req.body;
 
-    res.status(201).json(savedUser);
-  } catch (error) {
-    console.error('Error creating a new user:', error);
-    res.status(500).json({ message: 'An error occurred while creating a new user' });
-  }
-});
-app.use(notFound)
-app.use(errorHandler)
+    try {
 
-app.listen(process.env.PORT, () => {
-  console.log(`Server is running on port ${process.env.PORT}`);
-  connectDataBase("mongodbVSCodePlaygroundDB");
-});
+      const existingUser = await User.findOne({ username });
+      if (existingUser) {
+        return res.status(400).json({ message: 'Username is already taken. Please choose a different one.' });
+      }
+
+      const newUser = new User({
+        name,
+        username,
+        password,
+        number: phoneNumber,
+        psnId,
+        accountCredit: '0', //default
+        avatar
+      });
+
+      // Save the new user to the database
+      const savedUser = await newUser.save();
+
+      res.status(201).json(savedUser);
+    } catch (error) {
+      console.error('Error creating a new user:', error);
+      res.status(500).json({ message: 'An error occurred while creating a new user' });
+    }
+  });
+  app.use(notFound)
+  app.use(errorHandler)
+
+  app.listen(process.env.PORT, () => {
+    console.log(`Server is running on port ${process.env.PORT}`);
+    connectDataBase("mongodbVSCodePlaygroundDB");
+  });

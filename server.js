@@ -13,7 +13,6 @@ app.use(cors());
 app.use(express.json());
 
 
-// Define API endpoint to fetch users
 app.get('/api/users', async (req, res) => {
   const userId = req.query.userId
 
@@ -74,7 +73,7 @@ app.get('/api/challenges', async (req, res) => {
       const challengeId = req.params.id;
       const updatedChallenge = req.body;
 
-      // Find the challenge by ID and update it with the new data
+      // Find the challenge by ID and update it 
       const result = await Challenge.findByIdAndUpdate(challengeId, updatedChallenge);
 
       res.json(result);
@@ -99,7 +98,7 @@ app.get('/api/challenges', async (req, res) => {
         avatar
       });
 
-      res.status(201).json(newChallenge); // Respond with the newly created challenge
+      res.status(201).json(newChallenge); 
     } catch (error) {
       console.error('Error creating a challenge:', error);
       res.status(500).json({ message: 'An error occurred while creating a challenge' });
@@ -123,11 +122,10 @@ app.get('/api/challenges', async (req, res) => {
         password,
         number: phoneNumber,
         psnId,
-        accountCredit: '0', //default
+        accountCredit: '0', //default value
         avatar
       });
 
-      // Save the new user to the database
       const savedUser = await newUser.save();
 
       res.status(201).json(savedUser);
@@ -148,13 +146,10 @@ app.get('/api/challenges', async (req, res) => {
         requestType
       });
   
-      // Save the coin to the database
       await newCoin.save();
   
-      // Send a response indicating the coin was successfully added
       res.status(201).json({ message: 'Coin added successfully!' });
     } catch (error) {
-      // Handle errors and send an appropriate response
       console.error(error);
       res.status(500).json({ error: 'Internal Server Error' });
     }

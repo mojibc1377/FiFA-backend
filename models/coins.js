@@ -15,7 +15,6 @@ const coinSchema = new mongoose.Schema({
   }
 });
 
-// Create the coin model from the schema
 const Coin = mongoose.model('Coin', coinSchema);
 
 export default Coin;

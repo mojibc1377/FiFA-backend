@@ -8,7 +8,8 @@ const challengeSchema = new mongoose.Schema({
     challengeAmount : Number,
     challengerId:String,
     accepterId:String,
-    avatar:String
+    avatar:String,
+    createdAt: { type: Date, default: Date.now }
     
   });
 

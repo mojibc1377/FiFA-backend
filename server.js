@@ -6,11 +6,15 @@ import connectDataBase from "./config/mongoDb.js";
 import {notFound, errorHandler} from "./MiddleWare/Errors.js";
 import Challenge from "./models/challengeSchema.js";
 import Coin from "./models/coins.js"
+import bodyParser from "body-parser";
+import moment from 'moment';
+
 
 const app = express();
 dotenv.config()
 app.use(cors());
 app.use(express.json());
+app.use(bodyParser.json())
 
 
 app.get('/api/users', async (req, res) => {
@@ -19,7 +23,7 @@ app.get('/api/users', async (req, res) => {
   try {
     if(userId){
     const result = await User.find({ _id: userId });
-    res.json(result)
+    return res.json(result);
     }
     const users = await User.find()
     res.json(users);
@@ -29,6 +33,54 @@ app.get('/api/users', async (req, res) => {
   }
 });
 
+app.post("/api/users/purchase-coins", async (req, res) => {
+  const { userId, amount } = req.body;
+
+  try {
+    // Fetch the user from the database
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    // Calculate the new account credit after the purchase
+    const newAccountCredit = parseFloat(user.accountCredit) - parseFloat(Math.ceil(amount*0.8));
+
+    // Update the user's accountCredit in the database
+    user.accountCredit = newAccountCredit
+    await user.save();
+
+    return res.json({ message: "Coins purchased successfully!", accountCredit: newAccountCredit.toFixed(2) });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "An error occurred." });
+  }
+});
+app.post("/api/users/sell-coins", async (req, res) => {
+  const { userId, amount } = req.body;
+
+  try {
+    // Fetch the user from the database
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    // Calculate the new account credit after the purchase
+    const newAccountCredit = parseFloat(user.accountCredit) + parseFloat(Math.ceil(amount*0.6));
+
+    // Update the user's accountCredit in the database
+    user.accountCredit = newAccountCredit;
+    await user.save();
+
+    return res.json({ message: "Coins purchased successfully!", accountCredit: newAccountCredit.toFixed(2) });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "An error occurred." });
+  }
+});
 
 app.get('/api/challenges', async (req, res) => {
   try {
@@ -47,6 +99,7 @@ app.get('/api/challenges', async (req, res) => {
     res.status(500).json({ message: 'Server Error' });
   }
 });
+
   app.put('/api/settings/users/:userId', async (req, res) => {
   const userId = req.params.userId; 
   const dataToUpdate = req.body; 
@@ -68,6 +121,34 @@ app.get('/api/challenges', async (req, res) => {
   }
 });
 
+
+// Route to charge user's wallet
+app.post("/api/users/charge-wallet", async (req, res) => {
+  const { userId, amount } = req.body;
+
+  try {
+    // Fetch the user from the database
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    // Update the user's accountCredit
+    user.accountCredit = String(
+      parseFloat(user.accountCredit) + parseFloat(amount)
+    );
+
+    await user.save();
+
+    return res.json({ message: "Wallet charged successfully." });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "An error occurred." });
+  }
+});
+
+
   app.put('/api/challenges/:id', async (req, res) => {
     try {
       const challengeId = req.params.id;
@@ -83,10 +164,24 @@ app.get('/api/challenges', async (req, res) => {
     }
 })
 
+app.delete('/api/challenges/delete-old', async (req, res) => {
+  try {
+    // Calculate the timestamp 48 hours ago from now
+    const timestamp48HoursAgo = moment().subtract(48, 'hours').toDate();
+
+    // Delete challenges older than the timestamp
+    await Challenge.deleteMany({ createdAt: { $lt: timestamp48HoursAgo } });
+
+    res.status(200).json({ message: 'Old challenges deleted successfully.' });
+  } catch (error) {
+    console.error('Error deleting old challenges:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
 
   app.post('/api/challenges/new/post', async (req, res) => {
     try {
-      const { challengerName, gameName, consoleType, challengeAmount, challengerId, accepterId, avatar } = req.body;
+      const { challengerName, gameName, consoleType, challengeAmount, challengerId, accepterId, avatar,createdAt } = req.body;
 
       const newChallenge = await Challenge.create({
         challengerName,
@@ -95,7 +190,8 @@ app.get('/api/challenges', async (req, res) => {
         challengeAmount,
         challengerId,
         accepterId,
-        avatar
+        avatar,
+        createdAt
       });
 
       res.status(201).json(newChallenge); 
@@ -145,7 +241,6 @@ app.get('/api/challenges', async (req, res) => {
         psnId: psnId,
         requestType
       });
-  
       await newCoin.save();
   
       res.status(201).json({ message: 'Coin added successfully!' });

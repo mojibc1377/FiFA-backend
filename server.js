@@ -8,6 +8,7 @@ import Challenge from "./models/challengeSchema.js";
 import Coin from "./models/coins.js"
 import bodyParser from "body-parser";
 import moment from 'moment';
+import Comment from "./models/comments.js";
 
 
 const app = express();
@@ -85,14 +86,23 @@ app.post("/api/users/sell-coins", async (req, res) => {
 app.get('/api/challenges', async (req, res) => {
   try {
     const { accepterId } = req.query;
+    const { challengerId } = req.query;
+
 
     if (accepterId) {
 //if with query fetch challs with query
       const challenges = await Challenge.find({ accepterId });
       res.json(challenges);
     } else {
-      const challenges = await Challenge.find();
-      res.json(challenges);
+      if(challengerId){
+        const challenges = await Challenge.find({ challengerId });
+        res.json(challenges)
+
+      }else{
+        const challenges = await Challenge.find();
+        res.json(challenges);
+      }
+     
     }
   } catch (error) {
     console.error('Error fetching challenges:', error);
@@ -148,7 +158,17 @@ app.post("/api/users/charge-wallet", async (req, res) => {
   }
 });
 
-
+app.get("/api/challenge/:id",async(req,res) =>{
+  try {
+    const id = req.params.id;
+    const result = await Challenge.findById(id)
+    res.json(result)
+    
+  } catch (error) {
+    console.error('Error fetching challenge:', error);
+      res.status(500).json({ message: 'Server Error' });
+  }
+})
   app.put('/api/challenges/:id', async (req, res) => {
     try {
       const challengeId = req.params.id;
@@ -201,6 +221,57 @@ app.delete('/api/challenges/delete-old', async (req, res) => {
     }
   });
 
+  app.get("/api/challenges/comments/:challengeId" , async(req,res) =>{
+    try {
+      const challengeId = req.params.challengeId
+      const result = await Comment.find({challengeId:challengeId}) // find comments based on challenge ID
+      res.status(201).json(result)
+
+    } catch (error) {
+      console.error('Error fetching comment:', error);
+      res.status(500).json({ message: 'An error occurred while fetching comments' });
+    }
+  })
+app.post("/api/challenges/comments/new" , async(req,res) => {
+  try {
+    const {commenterId, challengeId, receiverId, comment, createdAt} = req.body
+    const newComment = await Comment.create({
+      commenterId,
+      challengeId,
+      receiverId,
+      comment,
+      createdAt
+    })
+    res.status(201).json(newComment); 
+  } catch (error) {
+    console.error('Error sending the comment :', error);
+      res.status(500).json({ message: 'An error occurred while sending a comment' });
+  }
+ 
+
+    // commenterId: {
+    //   type: String,
+    //   required: true,
+    // },
+    // challengeId :{
+    //   type:String,
+    //   required : true,
+    // },
+    // receiverId: {
+    //   type: String,
+    //   required: true,
+    // },
+    // comment: {
+    //   type: String,
+    //   required: true,
+    // },
+    // createdAt: {
+    //   type: Date,
+    //   default: Date.now,
+    // },schema 
+
+
+})
 
   app.post('/api/signup', async (req, res) => {
     const { name, username, password, phoneNumber, psnId, avatar } = req.body;
@@ -249,6 +320,52 @@ app.delete('/api/challenges/delete-old', async (req, res) => {
       res.status(500).json({ error: 'Internal Server Error' });
     }
   });
+  
+  app.post('/api/comments', async (req, res) => {
+    try {
+      const { commenterId, receiverId, comment } = req.body;
+  
+      // Check if both commenterId and receiverId are provided
+      if (!commenterId || !receiverId) {
+        return res.status(400).json({ message: 'Both commenterId and receiverId are required' });
+      }
+  
+      // Create the new comment
+      const newComment = await Comment.create({ commenterId, receiverId, comment });
+      res.status(201).json(newComment);
+    } catch (error) {
+      console.error('Error creating comment:', error);
+      res.status(500).json({ message: 'An error occurred while creating the comment' });
+    }
+  });
+  
+  // API endpoint to fetch comments
+  app.get('/api/comments', async (req, res) => {
+    try {
+      const { commenterId, receiverId } = req.query;
+      let comments;
+  
+      // If both commenterId and receiverId are provided, fetch comments for that specific pair
+      if (commenterId && receiverId) {
+        comments = await Comment.find({ commenterId, receiverId });
+      } else if (commenterId) {
+        // If only commenterId is provided, fetch comments for the specific commenter
+        comments = await Comment.find({ commenterId });
+      } else if (receiverId) {
+        // If only receiverId is provided, fetch comments for the specific receiver
+        comments = await Comment.find({ receiverId });
+      } else {
+        // Fetch all comments
+        comments = await Comment.find();
+      }
+  
+      res.json(comments);
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+      res.status(500).json({ message: 'An error occurred while fetching comments' });
+    }
+  });
+  
   
   app.use(notFound)
   app.use(errorHandler)

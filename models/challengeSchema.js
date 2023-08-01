@@ -8,6 +8,10 @@ const challengeSchema = new mongoose.Schema({
     challengeAmount : Number,
     challengerId:String,
     accepterId:String,
+    resultPhoto: {
+      type: String,
+      default: '' // You can set a default value if needed
+    },
     avatar:String,
     createdAt: { type: Date, default: Date.now }
     

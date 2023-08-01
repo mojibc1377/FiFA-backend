@@ -46,7 +46,7 @@ app.post("/api/users/purchase-coins", async (req, res) => {
     }
 
     // Calculate the new account credit after the purchase
-    const newAccountCredit = parseFloat(user.accountCredit) - parseFloat(Math.ceil(amount*0.8));
+    const newAccountCredit = parseFloat(user.accountCredit) - parseFloat(amount);
 
     // Update the user's accountCredit in the database
     user.accountCredit = newAccountCredit

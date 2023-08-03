@@ -390,6 +390,35 @@ app.post("/api/challenges/comments/new" , async(req,res) => {
       res.status(500).json({ message: 'An error occurred while fetching comments' });
     }
   });
+  ////NextPay
+app.post('/api/pay' , async(req, res) =>{
+    const {userId, amount} = req.body 
+    const data ={
+      api_key: '709426d3-572d-4fb0-8f70-b8022a9c2ab4',
+      amount: amount,
+      order_id: userId,
+      callback_uri: 'http://localhost:3000/'
+      };
+      var config = {
+        method: 'post',
+        url: 'https://nextpay.org/nx/gateway/token',
+        data : data
+      };
+      try{
+        axios(config)
+        .then(function (response) {
+          console.log(JSON.stringify(response.data));
+          res.json(response.data)
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+        
+  } catch (error) {
+    console.log(error);
+      throw error;
+  }
+})
   
   
   app.use(notFound)

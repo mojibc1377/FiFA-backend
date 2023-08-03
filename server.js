@@ -419,7 +419,39 @@ app.post('/api/pay' , async(req, res) =>{
       throw error;
   }
 })
-  
+  app.post('/api.sms.ir/v1/send/verify',async(req, res) =>{
+    const {mobile, parameters, templateId} = req.body 
+   
+      var data = JSON.stringify({
+        "mobile": mobile,
+        "templateId": templateId,
+        "parameters": parameters,
+      });
+      const smsConfig = {
+        method: 'post',
+        url: "https:api.sms.ir/v1/send/verify",
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'text/plain',
+            'x-api-key': "bTD9j8N8IdbEH78MVjpHarrNDRjwchIDwVjSaNWDPccme4XMEjzDOLAIhelKLapc"
+          },
+          data: data
+      };
+      try{
+        axios(config)
+        .then(function (response) {
+          console.log(JSON.stringify(response.data));
+          res.json(response.data)
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+        
+  } catch (error) {
+    console.log(error);
+      throw error;
+  }
+  })
   
   app.use(notFound)
   app.use(errorHandler)

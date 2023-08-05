@@ -9,6 +9,7 @@ import Coin from "./models/coins.js"
 import bodyParser from "body-parser";
 import moment from 'moment';
 import Comment from "./models/comments.js";
+import axios from "axios"
 
 
 const app = express();
@@ -419,14 +420,14 @@ app.post('/api/pay' , async(req, res) =>{
       throw error;
   }
 })
-  app.post('/api.sms.ir/v1/send/verify',async(req, res) =>{
+  app.post('/api/message',async(req, res) =>{
     const {mobile, parameters, templateId} = req.body 
    
-      var data = JSON.stringify({
+      var data = {
         "mobile": mobile,
         "templateId": templateId,
         "parameters": parameters,
-      });
+      };
       const smsConfig = {
         method: 'post',
         url: "https:api.sms.ir/v1/send/verify",
@@ -438,7 +439,7 @@ app.post('/api/pay' , async(req, res) =>{
           data: data
       };
       try{
-        axios(config)
+        axios(smsConfig)
         .then(function (response) {
           console.log(JSON.stringify(response.data));
           res.json(response.data)

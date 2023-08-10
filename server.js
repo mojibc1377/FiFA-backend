@@ -176,8 +176,7 @@ app.post('/api/challenges/:challengeId/update', async (req, res) => {
   const { resultPhoto } = req.body;
 
   try {
-    // Assuming you have a MongoDB model for challenges
-    // Find the challenge document by challengeId
+   
     const challenge = await Challenge.findById(challengeId);
 
     if (!challenge) {
@@ -273,29 +272,6 @@ app.post("/api/challenges/comments/new" , async(req,res) => {
     console.error('Error sending the comment :', error);
       res.status(500).json({ message: 'An error occurred while sending a comment' });
   }
- 
-
-    // commenterId: {
-    //   type: String,
-    //   required: true,
-    // },
-    // challengeId :{
-    //   type:String,
-    //   required : true,
-    // },
-    // receiverId: {
-    //   type: String,
-    //   required: true,
-    // },
-    // comment: {
-    //   type: String,
-    //   required: true,
-    // },
-    // createdAt: {
-    //   type: Date,
-    //   default: Date.now,
-    // },schema 
-
 
 })
 

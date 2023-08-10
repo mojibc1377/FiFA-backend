@@ -417,7 +417,6 @@ app.post('/api/pay' , async(req, res) =>{
       try{
         axios(smsConfig)
         .then(function (response) {
-          console.log(JSON.stringify(response.data));
           res.json(response.data)
         })
         .catch(function (error) {

@@ -10,6 +10,8 @@ import bodyParser from "body-parser";
 import moment from 'moment';
 import Comment from "./models/comments.js";
 import axios from "axios"
+import bcrypt from "bcrypt"
+import jwt from "jsonwebtoken";
 
 
 const app = express();
@@ -32,6 +34,29 @@ app.get('/api/users', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+app.post('/api/login', async (req, res) => {
+  const { username, password } = req.body;
+  try {
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(401).json({ message: 'User not found' });
+    }
+    const isPasswordValid = bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: 'Invalid password' });
+    }
+    // Generate a JWT token
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: '2h', // Token expires in 1 hour
+    });
+    res.status(200).json({ token,user });
+    console.log(user)
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ message: 'Login failed. Please try again later.' });
   }
 });
 
@@ -274,10 +299,27 @@ app.post("/api/challenges/comments/new" , async(req,res) => {
   }
 
 })
+app.get('/api/check-username', async (req, res) => {
+  const { username } = req.query;
+
+  try {
+    const existingUser = await User.findOne({ username });
+
+    if (existingUser) {
+      res.json({ available: false });
+    } else {
+      res.json({ available: true });
+    }
+  } catch (error) {
+    console.error('Error checking username availability:', error);
+    res.status(500).json({ message: 'An error occurred while checking username availability' });
+  }
+});
+
 
   app.post('/api/signup', async (req, res) => {
     const { name, username, password, phoneNumber, psnId, avatar } = req.body;
-
+    const hashedPassword = await bcrypt.hash(password, 10);
     try {
 
       const existingUser = await User.findOne({ username });
@@ -288,7 +330,7 @@ app.post("/api/challenges/comments/new" , async(req,res) => {
       const newUser = new User({
         name,
         username,
-        password,
+        password:hashedPassword,
         number: phoneNumber,
         psnId,
         accountCredit: '0', //default value

@@ -9,8 +9,10 @@ const challengeSchema = new mongoose.Schema({
     challengerId:String,
     accepterId:String,
     resultPhoto: {
-      type: String,
-      default: '' // You can set a default value if needed
+      type: Array,
+    },
+    winner :{
+      type : Array,
     },
     avatar:String,
     createdAt: { type: Date, default: Date.now }

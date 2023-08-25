@@ -198,19 +198,24 @@ app.get("/api/challenge/:id",async(req,res) =>{
 // POST route to update a challenge with a result photo URL
 app.post('/api/challenges/:challengeId/update', async (req, res) => {
   const { challengeId } = req.params;
-  const { resultPhoto } = req.body;
+  const { resultPhoto, winner } = req.body;
 
   try {
-   
     const challenge = await Challenge.findById(challengeId);
 
     if (!challenge) {
       return res.status(404).json({ message: 'Challenge not found' });
     }
 
-    // Update the challenge document with the resultPhoto URL
-    challenge.resultPhoto = resultPhoto;
- 
+    // Update the challenge document with the provided fields if available
+    if (resultPhoto !== undefined) {
+      challenge.resultPhoto.push(resultPhoto);
+    }
+    
+    if (winner !== undefined) {
+      challenge.winner.push(winner);
+    }
+
     await challenge.save();
     return res.status(200).json({ message: 'Challenge updated successfully' });
   } catch (error) {
@@ -251,7 +256,7 @@ app.delete('/api/challenges/delete-old', async (req, res) => {
 
   app.post('/api/challenges/new/post', async (req, res) => {
     try {
-      const { challengerName, gameName, consoleType, challengeAmount, challengerId, accepterId, avatar,createdAt } = req.body;
+      const {challengerName, gameName, consoleType, challengeAmount, challengerId, accepterId, avatar, winner, createdAt} = req.body;
 
       const newChallenge = await Challenge.create({
         challengerName,
@@ -259,6 +264,7 @@ app.delete('/api/challenges/delete-old', async (req, res) => {
         consoleType,
         challengeAmount,
         challengerId,
+        winner,
         accepterId,
         avatar,
         createdAt

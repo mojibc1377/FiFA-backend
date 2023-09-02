@@ -161,28 +161,63 @@ app.get('/api/challenges', async (req, res) => {
 // Route to charge user's wallet
 app.post("/api/users/charge-wallet", async (req, res) => {
   const { userId, amount } = req.body;
-
+  console.log(amount)
+  const config = {
+    apiKey: process.env.NEXT_PAY_API,
+    baseURL: 'https://nextpay.org/nx/gateway'
+  };
+  console.log(config)
   try {
-    // Fetch the user from the database
     const user = await User.findById(userId);
+    const res = await axios.post(`${config.baseURL}/token`, {
+      api_key: config.apiKey,
+      order_id: userId,
+      amount: Number(amount),
+      callback_uri: 'https://fifa-gamma.vercel.app/',
+      currency: 'IRT',
+      payer_name: user.name,
+    });
 
-    if (!user) {
-      return res.status(404).json({ error: "User not found." });
+    if (res.data?.code == -1) {
+      return {
+        uri: `${config.baseURL}/payment/${res.data?.trans_id}`,
+        trans_id: res.data?.trans_id
+      };
     }
-
-    // Update the user's accountCredit
-    user.accountCredit = String(
-      parseFloat(user.accountCredit) + parseFloat(amount)
+    throw new Error(
+      `Nextpay returned error code ${res.data?.code} : ${JSON.stringify(res.data)}`
     );
-
-    await user.save();
-
-    return res.json({ message: "Wallet charged successfully." });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: "An error occurred." });
+    console.log(error);
+    throw error;
   }
 });
+
+
+//     if (!user) {
+//       return res.status(404).json({ error: "User not found." });
+//     }
+//     axios(config)
+//         .then(function (response) {
+//           console.log(JSON.stringify(response.data));
+//           res.json(response.data)
+//         })
+//         .catch(function (error) {
+//           console.log(error);
+//         });
+        
+//     // Update the user's accountCredit
+//     user.accountCredit = String(
+//       parseFloat(user.accountCredit) + parseFloat(amount)
+//     );
+
+//     await user.save();
+
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(500).json({ error: "An error occurred." });
+//   }
+// });
 
 app.get("/api/challenge/:id",async(req,res) =>{
   try {
@@ -416,34 +451,11 @@ app.get('/api/check-username', async (req, res) => {
     }
   });
   ////NextPay
-app.post('/api/pay' , async(req, res) =>{
-    const {userId, amount} = req.body 
-    const data ={
-      api_key: '709426d3-572d-4fb0-8f70-b8022a9c2ab4',
-      amount: amount,
-      order_id: userId,
-      callback_uri: 'http://localhost:3000/'
-      };
-      var config = {
-        method: 'post',
-        url: 'https://nextpay.org/nx/gateway/token',
-        data : data
-      };
-      try{
-        axios(config)
-        .then(function (response) {
-          console.log(JSON.stringify(response.data));
-          res.json(response.data)
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
-        
-  } catch (error) {
-    console.log(error);
-      throw error;
-  }
-})
+
+
+
+
+
   app.post('/api/message',async(req, res) =>{
     const {mobile, parameters, templateId} = req.body 
    
